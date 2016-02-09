@@ -62,7 +62,7 @@ type compressorFlate struct {
 }
 
 func (c compressorFlate) compressor(compressed io.Writer) (w io.WriteCloser, err error) {
-	if w, err = flate.NewWriter(w, 9); err != nil {
+	if w, err = flate.NewWriter(compressed, 9); err != nil {
 		return
 	}
 	return
@@ -82,12 +82,12 @@ type compressorGzip struct {
 }
 
 func (c compressorGzip) compressor(compressed io.Writer) (w io.WriteCloser, err error) {
-	w = gzip.NewWriter(w)
+	w = gzip.NewWriter(compressed)
 	return
 }
 
 func (c compressorGzip) decompressor(compressed io.Reader) (r io.ReadCloser, err error) {
-	r, err = gzip.NewReader(r)
+	r, err = gzip.NewReader(compressed)
 	if err != nil {
 		return
 	}
@@ -103,12 +103,12 @@ type compressorLzw struct {
 }
 
 func (c compressorLzw) compressor(compressed io.Writer) (w io.WriteCloser, err error) {
-	w = lzw.NewWriter(w, lzw.MSB, 8)
+	w = lzw.NewWriter(compressed, lzw.MSB, 8)
 	return
 }
 
 func (c compressorLzw) decompressor(compressed io.Reader) (r io.ReadCloser, err error) {
-	r = lzw.NewReader(r, lzw.MSB, 8)
+	r = lzw.NewReader(compressed, lzw.MSB, 8)
 	return
 }
 
@@ -121,14 +121,14 @@ type compressorZlib struct {
 }
 
 func (c compressorZlib) compressor(compressed io.Writer) (w io.WriteCloser, err error) {
-	if w, err = zlib.NewWriterLevel(w, zlib.BestCompression); err != nil {
+	if w, err = zlib.NewWriterLevel(compressed, zlib.BestCompression); err != nil {
 		return
 	}
 	return
 }
 
 func (c compressorZlib) decompressor(compressed io.Reader) (r io.ReadCloser, err error) {
-	if r, err = zlib.NewReader(r); err != nil {
+	if r, err = zlib.NewReader(compressed); err != nil {
 		return
 	}
 	return
