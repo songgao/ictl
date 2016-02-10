@@ -40,7 +40,7 @@ func TestCompressors(t *testing.T) {
 
 		got := string(uncompressed.Bytes())
 		if got != lipsum {
-			t.Fatalf("compressed then uncompressed data is not equal to original. origin: %s; got: %s\n", lipsum, got)
+			t.Fatalf("compressed then uncompressed data is not equal to original.\norigin: %s\n   got: %s\n", lipsum, got)
 		}
 
 		t.Logf("compressor (%d) test passed\n", cmp.getCompressionAlgorithm())

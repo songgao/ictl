@@ -35,6 +35,7 @@ func compressFindBest(output []byte, data []byte) (cmp compressor, length int, e
 		}
 		if l < best {
 			bestk = k
+			best = l
 		}
 	}
 
@@ -116,7 +117,7 @@ func encodeDF(pool *slicePool, data []byte, base []byte, baseId uint16) (packet 
 		cleanup()
 		return
 	}
-	slice.Resize(l + 4)
+	packet.Resize(l + 4)
 
 	var header header
 	header.setFrameID(baseId)
@@ -131,11 +132,11 @@ func encodeDF(pool *slicePool, data []byte, base []byte, baseId uint16) (packet 
 	return
 }
 
-func decode(pool *slicePool, packet []byte) (header header, data *ReusableSlice, err error) {
-	data = pool.Get()
+func decode(pool *slicePool, packet []byte) (header header, payload *ReusableSlice, err error) {
+	payload = pool.Get()
 	cleanup := func() {
-		data.Done()
-		data = nil
+		payload.Done()
+		payload = nil
 	}
 
 	reader := bytes.NewReader(packet)
@@ -147,7 +148,8 @@ func decode(pool *slicePool, packet []byte) (header header, data *ReusableSlice,
 		cleanup()
 		return
 	}
-	if _, err = r.Read(data.Slice()); err != nil {
+	var l int
+	if l, err = r.Read(payload.Slice()); err != nil {
 		cleanup()
 		return
 	}
@@ -155,6 +157,7 @@ func decode(pool *slicePool, packet []byte) (header header, data *ReusableSlice,
 		cleanup()
 		return
 	}
+	payload.Resize(l)
 
 	return
 }
