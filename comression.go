@@ -9,12 +9,14 @@ import (
 	"io/ioutil"
 )
 
-var compressors map[uint8]compressor = map[uint8]compressor{
-	cmpAlgrNone:  compressorNone{},
-	cmpAlgrFlate: compressorFlate{},
-	cmpAlgrGzip:  compressorGzip{},
-	cmpAlgrLzw:   compressorLzw{},
-	cmpAlgrZlib:  compressorZlib{},
+type compressorCreator func() compressor
+
+var compressors map[uint8]compressorCreator = map[uint8]compressorCreator{
+	cmpAlgrNone:  func() compressor { return compressorNone{} },
+	cmpAlgrFlate: func() compressor { return compressorFlate{} },
+	cmpAlgrGzip:  func() compressor { return compressorGzip{} },
+	cmpAlgrLzw:   func() compressor { return compressorLzw{} },
+	cmpAlgrZlib:  func() compressor { return compressorZlib{} },
 }
 
 type compressor interface {
@@ -30,6 +32,7 @@ type compressor interface {
 	// ReadCloser when finished reading.
 	decompressor(compressed io.Reader) (uncompressed io.ReadCloser, err error)
 	getOptionsForHeader() uint8     // only higher 4 bits
+	setOptionsFromHeader(uint8)     // only higher 4 bits
 	getCompressionAlgorithm() uint8 // only lower 4 bits
 }
 
@@ -37,6 +40,9 @@ type emptyCompressorOptions struct{}
 
 func (e emptyCompressorOptions) getOptionsForHeader() uint8 {
 	return 0
+}
+
+func (e emptyCompressorOptions) setOptionsFromHeader(uint8) {
 }
 
 type compressorNone struct {

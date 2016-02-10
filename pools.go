@@ -1,42 +1,6 @@
 package ictl
 
-import (
-	"bytes"
-	"sync"
-)
-
-type ReusableBuffer struct {
-	bytes.Buffer
-	pool *sync.Pool
-}
-
-func (b *ReusableBuffer) Done() {
-	b.pool.Put(b)
-}
-
-type bufferPool struct {
-	pool *sync.Pool
-}
-
-func newBufferPool() bufferPool {
-	pool := new(sync.Pool)
-	pool.New = func() interface{} {
-		buf := new(ReusableBuffer)
-		buf.pool = pool
-		return buf
-	}
-	return bufferPool{
-		pool: pool,
-	}
-}
-
-func (p bufferPool) Get() *ReusableBuffer {
-	b := p.pool.Get().(*ReusableBuffer)
-	b.Reset()
-	return b
-}
-
-var poolBuffer = newBufferPool()
+import "sync"
 
 type ReusableSlice struct {
 	slice []byte
@@ -64,7 +28,7 @@ type slicePool struct {
 	pool *sync.Pool
 }
 
-func newSlicePool(maxLength int) slicePool {
+func newSlicePool(maxLength int) *slicePool {
 	pool := new(sync.Pool)
 	pool.New = func() interface{} {
 		s := new(ReusableSlice)
@@ -72,12 +36,12 @@ func newSlicePool(maxLength int) slicePool {
 		s.slice = make([]byte, maxLength)
 		return s
 	}
-	return slicePool{
+	return &slicePool{
 		pool: pool,
 	}
 }
 
-func (p slicePool) Get() *ReusableSlice {
+func (p *slicePool) Get() *ReusableSlice {
 	s := p.pool.Get().(*ReusableSlice)
 	s.Resize(s.Cap())
 	return s

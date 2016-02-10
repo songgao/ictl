@@ -12,28 +12,30 @@ func TestCompressors(t *testing.T) {
 	var err error
 
 	for _, v := range compressors {
+		cmp := v()
+
 		compressed := new(bytes.Buffer)
 		var w io.WriteCloser
-		if w, err = v.compressor(compressed); err != nil {
-			t.Fatalf("error creating compressor (%d): %v\n", v.getCompressionAlgorithm(), err)
+		if w, err = cmp.compressor(compressed); err != nil {
+			t.Fatalf("error creating compressor (%d): %v\n", cmp.getCompressionAlgorithm(), err)
 		}
 		if _, err = w.Write([]byte(lipsum)); err != nil {
-			t.Fatalf("error writing into the compressor (%d): %v\n", v.getCompressionAlgorithm(), err)
+			t.Fatalf("error writing into the compressor (%d): %v\n", cmp.getCompressionAlgorithm(), err)
 		}
 		if err = w.Close(); err != nil {
-			t.Fatalf("error closing the compressor (%d): %v\n", v.getCompressionAlgorithm(), err)
+			t.Fatalf("error closing the compressor (%d): %v\n", cmp.getCompressionAlgorithm(), err)
 		}
 
 		uncompressed := new(bytes.Buffer)
 		var r io.ReadCloser
-		if r, err = v.decompressor(compressed); err != nil {
-			t.Fatalf("error creating decompressor (%d): %v\n", v.getCompressionAlgorithm(), err)
+		if r, err = cmp.decompressor(compressed); err != nil {
+			t.Fatalf("error creating decompressor (%d): %v\n", cmp.getCompressionAlgorithm(), err)
 		}
 		if _, err = uncompressed.ReadFrom(r); err != nil {
-			t.Fatalf("error reading from the compressor (%d): %v\n", v.getCompressionAlgorithm(), err)
+			t.Fatalf("error reading from the compressor (%d): %v\n", cmp.getCompressionAlgorithm(), err)
 		}
 		if err = r.Close(); err != nil {
-			t.Fatalf("error closing the compressor (%d): %v\n", v.getCompressionAlgorithm(), err)
+			t.Fatalf("error closing the compressor (%d): %v\n", cmp.getCompressionAlgorithm(), err)
 		}
 
 		got := string(uncompressed.Bytes())
@@ -41,6 +43,6 @@ func TestCompressors(t *testing.T) {
 			t.Fatalf("compressed then uncompressed data is not equal to original. origin: %s; got: %s\n", lipsum, got)
 		}
 
-		t.Logf("compressor (%d) test passed\n", v.getCompressionAlgorithm())
+		t.Logf("compressor (%d) test passed\n", cmp.getCompressionAlgorithm())
 	}
 }
