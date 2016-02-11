@@ -11,12 +11,12 @@ import (
 
 type compressorCreator func() compressor
 
-var compressors map[uint8]compressorCreator = map[uint8]compressorCreator{
-	cmpAlgrNone:  func() compressor { return compressorNone{} },
-	cmpAlgrFlate: func() compressor { return compressorFlate{} },
-	cmpAlgrGzip:  func() compressor { return compressorGzip{} },
-	cmpAlgrLzw:   func() compressor { return compressorLzw{} },
-	cmpAlgrZlib:  func() compressor { return compressorZlib{} },
+var compressors map[compressionAlgorithm]compressorCreator = map[compressionAlgorithm]compressorCreator{
+	CANone:  func() compressor { return compressorNone{} },
+	CAFlate: func() compressor { return compressorFlate{} },
+	CAGzip:  func() compressor { return compressorGzip{} },
+	CALzw:   func() compressor { return compressorLzw{} },
+	CAZlib:  func() compressor { return compressorZlib{} },
 }
 
 type compressor interface {
@@ -31,9 +31,9 @@ type compressor interface {
 	// compressed.  It is the caller's responsibility to call Close on the
 	// ReadCloser when finished reading.
 	decompressor(compressed io.Reader) (uncompressed io.ReadCloser, err error)
-	getOptionsForHeader() uint8     // only higher 4 bits
-	setOptionsFromHeader(uint8)     // only higher 4 bits
-	getCompressionAlgorithm() uint8 // only lower 4 bits
+	getOptionsForHeader() uint8                    // only higher 4 bits
+	setOptionsFromHeader(uint8)                    // only higher 4 bits
+	getCompressionAlgorithm() compressionAlgorithm // only lower 4 bits
 }
 
 type emptyCompressorOptions struct{}
@@ -59,8 +59,8 @@ func (c compressorNone) decompressor(compressed io.Reader) (r io.ReadCloser, err
 	return
 }
 
-func (c compressorNone) getCompressionAlgorithm() uint8 {
-	return cmpAlgrNone
+func (c compressorNone) getCompressionAlgorithm() compressionAlgorithm {
+	return CANone
 }
 
 type compressorFlate struct {
@@ -79,8 +79,8 @@ func (c compressorFlate) decompressor(compressed io.Reader) (r io.ReadCloser, er
 	return
 }
 
-func (c compressorFlate) getCompressionAlgorithm() uint8 {
-	return cmpAlgrFlate
+func (c compressorFlate) getCompressionAlgorithm() compressionAlgorithm {
+	return CAFlate
 }
 
 type compressorGzip struct {
@@ -100,8 +100,8 @@ func (c compressorGzip) decompressor(compressed io.Reader) (r io.ReadCloser, err
 	return
 }
 
-func (c compressorGzip) getCompressionAlgorithm() uint8 {
-	return cmpAlgrGzip
+func (c compressorGzip) getCompressionAlgorithm() compressionAlgorithm {
+	return CAGzip
 }
 
 type compressorLzw struct {
@@ -118,8 +118,8 @@ func (c compressorLzw) decompressor(compressed io.Reader) (r io.ReadCloser, err 
 	return
 }
 
-func (c compressorLzw) getCompressionAlgorithm() uint8 {
-	return cmpAlgrLzw
+func (c compressorLzw) getCompressionAlgorithm() compressionAlgorithm {
+	return CALzw
 }
 
 type compressorZlib struct {
@@ -140,8 +140,8 @@ func (c compressorZlib) decompressor(compressed io.Reader) (r io.ReadCloser, err
 	return
 }
 
-func (c compressorZlib) getCompressionAlgorithm() uint8 {
-	return cmpAlgrZlib
+func (c compressorZlib) getCompressionAlgorithm() compressionAlgorithm {
+	return CAZlib
 }
 
 type writerNopCloser struct {

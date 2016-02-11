@@ -10,16 +10,19 @@ const (
 	frameDF
 )
 
+type compressionAlgorithm uint8
+
+// Compression algorithms
 const (
-	cmpAlgrNone uint8 = iota
-	cmpAlgrFlate
-	cmpAlgrGzip
-	cmpAlgrLzw
-	cmpAlgrZlib
+	CANone compressionAlgorithm = iota
+	CAFlate
+	CAGzip
+	CALzw
+	CAZlib
 
 	// reserved in protocol;
 	// used to indicate auto selecting compression algorithms in encoders
-	cmpAlgrAuto uint8 = 0xFF
+	CAAuto compressionAlgorithm = 0x0F
 )
 
 type header struct {
@@ -46,13 +49,13 @@ func (h header) getCompressionOptions() uint8 {
 	return h.compressionOptions & 0xF0
 }
 
-func (h *header) setCompressionAlgorithm(algo uint8) {
+func (h *header) setCompressionAlgorithm(algo compressionAlgorithm) {
 	// higher 4 bits reserved for parameters
-	h.compressionOptions |= 0x0F & algo
+	h.compressionOptions |= 0x0F & uint8(algo)
 }
 
-func (h header) getCompressionAlgorithm() uint8 {
-	return h.compressionOptions & 0x0F
+func (h header) getCompressionAlgorithm() compressionAlgorithm {
+	return compressionAlgorithm(h.compressionOptions & 0x0F)
 }
 
 func (h *header) setFrameID(id uint16) {

@@ -10,7 +10,7 @@ func TestEncoding(t *testing.T) {
 	var packet1, packet2, payload1, payload2 *ReusableSlice
 	var err error
 
-	if packet1, err = encode(pool, []byte(lipsum), 42, frameKF, cmpAlgrAuto); err != nil {
+	if packet1, err = encode(pool, []byte(lipsum), 42, frameKF, CAAuto); err != nil {
 		t.Fatalf("error encoding KF: %v\n", err)
 	}
 
@@ -30,7 +30,7 @@ func TestEncoding(t *testing.T) {
 
 	payload2 = pool.Get()
 	xor(payload1.Slice(), []byte(lipsum2), payload2)
-	if packet2, err = encode(pool, payload2.Slice(), 42, frameDF, cmpAlgrAuto); err != nil {
+	if packet2, err = encode(pool, payload2.Slice(), 42, frameDF, CAAuto); err != nil {
 		t.Fatalf("error encoding DF: %v\n", err)
 	}
 	payload2.Done()
