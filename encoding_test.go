@@ -4,38 +4,50 @@ import "testing"
 
 func TestEncoding(t *testing.T) {
 	lipsum := "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+	lipsum2 := lipsum[:42] + "." + lipsum[43:]
 
 	pool := newSlicePool(2000)
-	var packet1, packet2, payload *ReusableSlice
+	var packet1, packet2, payload1, payload2 *ReusableSlice
 	var err error
 
-	if packet1, err = encodeKF(pool, []byte(lipsum), 42); err != nil {
+	if packet1, err = encode(pool, []byte(lipsum), 42, frameKF, cmpAlgrAuto); err != nil {
 		t.Fatalf("error encoding KF: %v\n", err)
 	}
 
-	if _, payload, err = decode(pool, packet1.Slice()); err != nil {
+	t.Logf("KF encoded: %d bytes (from %d bytes); header: %x\n", len(packet1.Slice()), len(lipsum), packet1.Slice()[:4])
+
+	if _, payload1, err = decode(pool, packet1.Slice()); err != nil {
 		t.Fatalf("error decoding KF: %v\n", err)
 	}
+	packet1.Done()
 
-	got := string(payload.Slice())
+	got := string(payload1.Slice())
 	if got != lipsum {
 		t.Fatalf("compressed then uncompressed data is not equal to original.\norigin: %s\n   got: %s\n", lipsum, got)
 	}
 
 	t.Logf("KF compressing/decompressing test passed\n")
 
-	if packet2, err = encodeDF(pool, []byte(lipsum), packet1.Slice(), 42); err != nil {
+	payload2 = pool.Get()
+	xor(payload1.Slice(), []byte(lipsum2), payload2)
+	if packet2, err = encode(pool, payload2.Slice(), 42, frameDF, cmpAlgrAuto); err != nil {
 		t.Fatalf("error encoding DF: %v\n", err)
 	}
+	payload2.Done()
 
-	if _, payload, err = decode(pool, packet2.Slice()); err != nil {
+	t.Logf("DF encoded: %d bytes (from %d bytes); header: %x\n", len(packet2.Slice()), len(lipsum2), packet2.Slice()[:4])
+
+	if _, payload2, err = decode(pool, packet2.Slice()); err != nil {
 		t.Fatalf("error decoding DF: %v\n", err)
 	}
+	packet2.Done()
 
 	data := pool.Get()
-	xor(packet1.Slice(), payload.Slice(), data)
+	xor(payload1.Slice(), payload2.Slice(), data)
+	payload1.Done()
+	payload2.Done()
 	got = string(data.Slice())
-	if got != lipsum {
+	if got != lipsum2 {
 		t.Fatalf("compressed then uncompressed data is not equal to original.\norigin: %s\n   got: %s\n", lipsum, got)
 	}
 

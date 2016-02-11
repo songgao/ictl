@@ -16,6 +16,10 @@ const (
 	cmpAlgrGzip
 	cmpAlgrLzw
 	cmpAlgrZlib
+
+	// reserved in protocol;
+	// used to indicate auto selecting compression algorithms in encoders
+	cmpAlgrAuto uint8 = 0xFF
 )
 
 type header struct {
