@@ -49,7 +49,7 @@ func compressFindBest(output []byte, data []byte) (cmp compressor, length int, e
 }
 
 func encode(pool *slicePool, payload []byte, id uint16, frameType uint8, cmpAlgr compressionAlgorithm) (packet *ReusableSlice, err error) {
-	packet = pool.Get()
+	packet = pool.get()
 	cleanup := func() {
 		packet.Done()
 		packet = nil
@@ -92,7 +92,7 @@ func encode(pool *slicePool, payload []byte, id uint16, frameType uint8, cmpAlgr
 }
 
 func decode(pool *slicePool, packet []byte) (header header, payload *ReusableSlice, err error) {
-	payload = pool.Get()
+	payload = pool.get()
 	cleanup := func() {
 		payload.Done()
 		payload = nil
@@ -121,6 +121,7 @@ func decode(pool *slicePool, packet []byte) (header header, payload *ReusableSli
 	return
 }
 
+// calling xor, unlike other functions, doesn't transfer ownership
 func xor(a, b []byte, output *ReusableSlice) {
 	c := output.Slice()
 	var i int

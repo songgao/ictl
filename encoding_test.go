@@ -28,7 +28,7 @@ func TestEncoding(t *testing.T) {
 
 	t.Logf("KF compressing/decompressing test passed\n")
 
-	payload2 = pool.Get()
+	payload2 = pool.get()
 	xor(payload1.Slice(), []byte(lipsum2), payload2)
 	if packet2, err = encode(pool, payload2.Slice(), 42, frameDF, CAAuto); err != nil {
 		t.Fatalf("error encoding DF: %v\n", err)
@@ -42,7 +42,7 @@ func TestEncoding(t *testing.T) {
 	}
 	packet2.Done()
 
-	data := pool.Get()
+	data := pool.get()
 	xor(payload1.Slice(), payload2.Slice(), data)
 	payload1.Done()
 	payload2.Done()

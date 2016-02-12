@@ -1,14 +1,26 @@
 package ictl
 
 import "sync"
+import "sync/atomic"
 
 type ReusableSlice struct {
-	slice []byte
-	pool  *sync.Pool
+	slice   []byte
+	pool    *sync.Pool
+	counter int32
+}
+
+func (s *ReusableSlice) AddOwner() {
+	atomic.AddInt32(&s.counter, 1)
 }
 
 func (s *ReusableSlice) Done() {
-	s.pool.Put(s)
+	atomic.AddInt32(&s.counter, -1)
+	c := atomic.LoadInt32(&s.counter)
+	if c == 0 {
+		s.pool.Put(s)
+	} else if c < 0 {
+		panic("incorrect use of ReusableSlice")
+	}
 }
 
 func (s *ReusableSlice) Slice() []byte {
@@ -41,8 +53,9 @@ func newSlicePool(maxLength int) *slicePool {
 	}
 }
 
-func (p *slicePool) Get() *ReusableSlice {
+func (p *slicePool) get() *ReusableSlice {
 	s := p.pool.Get().(*ReusableSlice)
 	s.Resize(s.Cap())
+	s.counter = 1
 	return s
 }
