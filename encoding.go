@@ -125,24 +125,14 @@ func decode(pool *slicePool, packet []byte) (header header, payload *ReusableSli
 func xor(a, b []byte, output *ReusableSlice) {
 	c := output.Slice()
 	var i int
-	lastNonZero := -1
 	for i = 0; i < len(a) && i < len(b); i++ {
 		c[i] = a[i] ^ b[i]
-		if c[i] != 0 {
-			lastNonZero = i
-		}
 	}
 	for ; i < len(a); i++ {
 		c[i] = a[i] ^ 0
-		if c[i] != 0 {
-			lastNonZero = i
-		}
 	}
 	for ; i < len(b); i++ {
 		c[i] = b[i] ^ 0
-		if c[i] != 0 {
-			lastNonZero = i
-		}
 	}
-	output.Resize(lastNonZero + 1)
+	output.Resize(i + 1)
 }

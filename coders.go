@@ -81,6 +81,7 @@ func (e *decoder) decode(packet []byte) (data *ReusableSlice, err error) {
 		ref, ok := e.rcvdKFs.get(header.frameID)
 		if !ok {
 			err = fmt.Errorf("referenced frame (id=%d)is missing", header.frameID)
+			return
 		}
 		data = e.pool.get()
 		xor(ref.Slice(), payload.Slice(), data)

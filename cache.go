@@ -34,8 +34,7 @@ func (c *sliceCache) put(id uint16, slice *ReusableSlice) {
 }
 
 func (c *sliceCache) get(id uint16) (slice *ReusableSlice, ok bool) {
-	slice, ok = c.slices[id]
-	if ok {
+	if slice, ok = c.slices[id]; ok {
 		slice.AddOwner()
 	}
 	return
