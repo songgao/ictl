@@ -16,11 +16,11 @@ type encoder struct {
 	cycleLength uint32
 }
 
-func newEncoder(pool *slicePool) *encoder {
+func newEncoder(pool *slicePool, cycleLength uint32) *encoder {
 	return &encoder{
 		pool:        pool,
 		sentKFs:     newSliceCacheWithConfidence(32),
-		cycleLength: 4,
+		cycleLength: cycleLength,
 	}
 }
 

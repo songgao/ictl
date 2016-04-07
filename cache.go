@@ -17,19 +17,21 @@ type sliceCache struct {
 
 func newSliceCache(size int) *sliceCache {
 	return &sliceCache{
-		lastID: initRing(ring.New(size), uint16(0)),
+		lastID: initRing(ring.New(size), nil),
 		slices: make(map[uint16]*ReusableSlice),
 	}
 }
 
 func (c *sliceCache) put(id uint16, slice *ReusableSlice) {
 	c.lastID = c.lastID.Next()
-	oldId := c.lastID.Value.(uint16)
-	if oldSlice, ok := c.slices[oldId]; ok {
-		oldSlice.Done()
-		delete(c.slices, oldId)
+	if c.lastID.Value != nil {
+		oldId := *c.lastID.Value.(*uint16)
+		if oldSlice, ok := c.slices[oldId]; ok {
+			oldSlice.Done()
+			delete(c.slices, oldId)
+		}
 	}
-	c.lastID.Value = id
+	c.lastID.Value = &id
 	c.slices[id] = slice
 }
 

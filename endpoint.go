@@ -37,7 +37,7 @@ func (e *endpoint) Encode(context string, data []byte, confidence uint8) (packet
 func (e *endpoint) EncodeReusable(context string, data *ReusableSlice, confidence uint8) (packet *ReusableSlice, err error) {
 	enc, ok := e.encoders[context]
 	if !ok {
-		enc = newEncoder(e.pool)
+		enc = newEncoder(e.pool, e.config.cycleLength)
 		e.encoders[context] = enc
 	}
 	packet, err = enc.encode(data, confidence)
