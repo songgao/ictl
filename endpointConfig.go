@@ -4,11 +4,11 @@ import "log"
 
 type EndpointConfig interface {
 	MaxPacketSize() int
-	CompressionAlgorithm() compressionAlgorithm
+	CompressionAlgorithm() CompressionAlgorithm
 	EncoderCycleLength() uint32
 
 	SetMaxPacketSize(int) EndpointConfig
-	SetCompressionAlgorithm(compressionAlgorithm) EndpointConfig
+	SetCompressionAlgorithm(CompressionAlgorithm) EndpointConfig
 	SetEncoderCycleLength(uint32) EndpointConfig
 }
 
@@ -22,12 +22,12 @@ func DefaultEndpointConfig() EndpointConfig {
 
 type endpointConfig struct {
 	maxPacketSize int
-	cmpAlgr       compressionAlgorithm
+	cmpAlgr       CompressionAlgorithm
 	cycleLength   uint32
 }
 
 func (e *endpointConfig) MaxPacketSize() int                         { return e.maxPacketSize }
-func (e *endpointConfig) CompressionAlgorithm() compressionAlgorithm { return e.cmpAlgr }
+func (e *endpointConfig) CompressionAlgorithm() CompressionAlgorithm { return e.cmpAlgr }
 func (e *endpointConfig) EncoderCycleLength() uint32                 { return e.cycleLength }
 
 func (e *endpointConfig) SetMaxPacketSize(v int) EndpointConfig {
@@ -35,7 +35,7 @@ func (e *endpointConfig) SetMaxPacketSize(v int) EndpointConfig {
 	return e
 }
 
-func (e *endpointConfig) SetCompressionAlgorithm(v compressionAlgorithm) EndpointConfig {
+func (e *endpointConfig) SetCompressionAlgorithm(v CompressionAlgorithm) EndpointConfig {
 	e.cmpAlgr = v
 	return e
 }

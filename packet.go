@@ -10,19 +10,19 @@ const (
 	frameDF
 )
 
-type compressionAlgorithm uint8
+type CompressionAlgorithm uint8
 
 // Compression algorithms
 const (
-	CANone compressionAlgorithm = iota
+	CANone CompressionAlgorithm = iota
 	CAFlate
 	CAGzip
 	CALzw
 	CAZlib
 
-	// reserved in protocol;
-	// used to indicate auto selecting compression algorithms in encoders
-	CAAuto compressionAlgorithm = 0x0F
+	// CAAuto is used to indicate auto selecting compression algorithms in
+	// encoders. This value is reserved and is never present in ICTL header.
+	CAAuto CompressionAlgorithm = 0x0F
 )
 
 type header struct {
@@ -49,13 +49,13 @@ func (h header) getCompressionOptions() uint8 {
 	return h.compressionOptions & 0xF0
 }
 
-func (h *header) setCompressionAlgorithm(algo compressionAlgorithm) {
+func (h *header) setCompressionAlgorithm(algo CompressionAlgorithm) {
 	// higher 4 bits reserved for parameters
 	h.compressionOptions |= 0x0F & uint8(algo)
 }
 
-func (h header) getCompressionAlgorithm() compressionAlgorithm {
-	return compressionAlgorithm(h.compressionOptions & 0x0F)
+func (h header) getCompressionAlgorithm() CompressionAlgorithm {
+	return CompressionAlgorithm(h.compressionOptions & 0x0F)
 }
 
 func (h *header) setFrameID(id uint16) {

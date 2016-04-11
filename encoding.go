@@ -48,7 +48,7 @@ func compressFindBest(output []byte, data []byte) (cmp compressor, length int, e
 	return
 }
 
-func encode(pool *slicePool, payload []byte, id uint16, frameType uint8, cmpAlgr compressionAlgorithm) (packet *ReusableSlice, err error) {
+func encode(pool *slicePool, payload []byte, id uint16, frameType uint8, cmpAlgr CompressionAlgorithm) (packet *ReusableSlice, err error) {
 	packet = pool.get()
 	cleanup := func() {
 		packet.Done()

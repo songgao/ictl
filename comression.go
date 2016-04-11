@@ -11,7 +11,7 @@ import (
 
 type compressorCreator func() compressor
 
-var compressors map[compressionAlgorithm]compressorCreator = map[compressionAlgorithm]compressorCreator{
+var compressors map[CompressionAlgorithm]compressorCreator = map[CompressionAlgorithm]compressorCreator{
 	CANone:  func() compressor { return compressorNone{} },
 	CAFlate: func() compressor { return compressorFlate{} },
 	CAGzip:  func() compressor { return compressorGzip{} },
@@ -33,7 +33,7 @@ type compressor interface {
 	decompressor(compressed io.Reader) (uncompressed io.ReadCloser, err error)
 	getOptionsForHeader() uint8                    // only higher 4 bits
 	setOptionsFromHeader(uint8)                    // only higher 4 bits
-	getCompressionAlgorithm() compressionAlgorithm // only lower 4 bits
+	getCompressionAlgorithm() CompressionAlgorithm // only lower 4 bits
 }
 
 type emptyCompressorOptions struct{}
@@ -59,7 +59,7 @@ func (c compressorNone) decompressor(compressed io.Reader) (r io.ReadCloser, err
 	return
 }
 
-func (c compressorNone) getCompressionAlgorithm() compressionAlgorithm {
+func (c compressorNone) getCompressionAlgorithm() CompressionAlgorithm {
 	return CANone
 }
 
@@ -79,7 +79,7 @@ func (c compressorFlate) decompressor(compressed io.Reader) (r io.ReadCloser, er
 	return
 }
 
-func (c compressorFlate) getCompressionAlgorithm() compressionAlgorithm {
+func (c compressorFlate) getCompressionAlgorithm() CompressionAlgorithm {
 	return CAFlate
 }
 
@@ -100,7 +100,7 @@ func (c compressorGzip) decompressor(compressed io.Reader) (r io.ReadCloser, err
 	return
 }
 
-func (c compressorGzip) getCompressionAlgorithm() compressionAlgorithm {
+func (c compressorGzip) getCompressionAlgorithm() CompressionAlgorithm {
 	return CAGzip
 }
 
@@ -118,7 +118,7 @@ func (c compressorLzw) decompressor(compressed io.Reader) (r io.ReadCloser, err 
 	return
 }
 
-func (c compressorLzw) getCompressionAlgorithm() compressionAlgorithm {
+func (c compressorLzw) getCompressionAlgorithm() CompressionAlgorithm {
 	return CALzw
 }
 
@@ -140,7 +140,7 @@ func (c compressorZlib) decompressor(compressed io.Reader) (r io.ReadCloser, err
 	return
 }
 
-func (c compressorZlib) getCompressionAlgorithm() compressionAlgorithm {
+func (c compressorZlib) getCompressionAlgorithm() CompressionAlgorithm {
 	return CAZlib
 }
 
