@@ -29,13 +29,13 @@ func (e *encoder) updateCycleLength(newLength uint16) {
 	atomic.StoreUint32(&e.cycleLength, uint32(newLength))
 }
 
-func (e *encoder) encode(data *ReusableSlice, confidence uint8) (packet *ReusableSlice, err error) {
+func (e *encoder) encode(data *ReusableSlice, confidence uint8, cmprAlgo CompressionAlgorithm) (packet *ReusableSlice, err error) {
 	cl := atomic.LoadUint32(&e.cycleLength)
 	id := atomic.LoadUint32(&e.idCounter)
 	atomic.StoreUint32(&e.idCounter, id+1)
 
 	if id%cl == 0 { // KF; just send the data
-		if packet, err = encode(e.pool, data.Slice(), uint16(id), frameKF, CAAuto); err != nil {
+		if packet, err = encode(e.pool, data.Slice(), uint16(id), frameKF, cmprAlgo); err != nil {
 			return
 		}
 		e.sentKFs.put(uint16(id), 0, data) // transferring ownership of data
@@ -45,7 +45,7 @@ func (e *encoder) encode(data *ReusableSlice, confidence uint8) (packet *Reusabl
 		defer payload.Done()
 		xor(ref.Slice(), data.Slice(), payload)
 		data.Done()
-		if packet, err = encode(e.pool, payload.Slice(), uint16(refID), frameDF, CAAuto); err != nil {
+		if packet, err = encode(e.pool, payload.Slice(), uint16(refID), frameDF, cmprAlgo); err != nil {
 			return
 		}
 	}

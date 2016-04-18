@@ -134,5 +134,5 @@ func xor(a, b []byte, output *ReusableSlice) {
 	for ; i < len(b); i++ {
 		c[i] = b[i] ^ 0
 	}
-	output.Resize(i + 1)
+	output.Resize(i)
 }

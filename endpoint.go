@@ -40,7 +40,7 @@ func (e *endpoint) EncodeReusable(context string, data *ReusableSlice, confidenc
 		enc = newEncoder(e.pool, e.config.cycleLength)
 		e.encoders[context] = enc
 	}
-	packet, err = enc.encode(data, confidence)
+	packet, err = enc.encode(data, confidence, e.config.cmpAlgr)
 	return
 }
 
