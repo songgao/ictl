@@ -1,5 +1,7 @@
 package ictl
 
+import "sync"
+
 type Endpoint interface {
 	Encode(context string, data []byte, confidence uint8) (packet *ReusableSlice, err error)
 	EncodeReusable(context string, data *ReusableSlice, confidence uint8) (packet *ReusableSlice, err error)
@@ -12,6 +14,9 @@ type endpoint struct {
 
 	encoders map[string]*encoder
 	decoders map[string]*decoder
+	mapMu    *sync.Mutex
+
+	dStats *decoderStats
 }
 
 func NewEndpoint(config EndpointConfig) Endpoint {
@@ -21,6 +26,10 @@ func NewEndpoint(config EndpointConfig) Endpoint {
 	e.pool = newSlicePool(e.config.maxPacketSize)
 	e.encoders = make(map[string]*encoder)
 	e.decoders = make(map[string]*decoder)
+	e.mapMu = new(sync.Mutex)
+
+	e.dStats = newDecoderStats(100)
+
 	return e
 }
 
@@ -35,21 +44,25 @@ func (e *endpoint) Encode(context string, data []byte, confidence uint8) (packet
 }
 
 func (e *endpoint) EncodeReusable(context string, data *ReusableSlice, confidence uint8) (packet *ReusableSlice, err error) {
+	e.mapMu.Lock()
 	enc, ok := e.encoders[context]
 	if !ok {
-		enc = newEncoder(e.pool, e.config.cycleLength)
+		enc = newEncoder(e.pool, e.config, e.dStats)
 		e.encoders[context] = enc
 	}
-	packet, err = enc.encode(data, confidence, e.config.cmpAlgr)
+	e.mapMu.Unlock()
+	packet, err = enc.encode(data, confidence)
 	return
 }
 
 func (e *endpoint) Decode(context string, packet []byte) (data *ReusableSlice, err error) {
+	e.mapMu.Lock()
 	dec, ok := e.decoders[context]
 	if !ok {
-		dec = newDecoder(e.pool)
+		dec = newDecoder(e.pool, e.dStats)
 		e.decoders[context] = dec
 	}
+	e.mapMu.Unlock()
 	data, err = dec.decode(packet)
 	return
 }
