@@ -2,6 +2,7 @@ package ictl
 
 import (
 	"bytes"
+	"crypto/rand"
 	"testing"
 	"time"
 )
@@ -31,5 +32,79 @@ func TestEndpoint(t *testing.T) {
 			t.Logf("encoding/decoding passed for: %x\n", toSend)
 		}
 		rcvd.Done()
+	}
+}
+
+func BenchmarkDefaultRandom(b *testing.B) {
+	config := DefaultEndpointConfig()
+	endpoint := NewEndpoint(config)
+	data := make([][]byte, 256)
+	for i := range data {
+		data[i] = make([]byte, 256)
+		if _, err := rand.Read(data[i]); err != nil {
+			b.Fatal(err)
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if p, err := endpoint.Encode("test", data[i%256], 0); err != nil {
+			b.Fatal(err)
+		} else {
+			p.Done()
+		}
+	}
+}
+
+func BenchmarkDefaultFlateRandom(b *testing.B) {
+	config := DefaultEndpointConfig().SetCompressionAlgorithm(CAFlate)
+	endpoint := NewEndpoint(config)
+	data := make([][]byte, 256)
+	for i := range data {
+		data[i] = make([]byte, 256)
+		if _, err := rand.Read(data[i]); err != nil {
+			b.Fatal(err)
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if p, err := endpoint.Encode("test", data[i%256], 0); err != nil {
+			b.Fatal(err)
+		} else {
+			p.Done()
+		}
+	}
+}
+
+func BenchmarkDefaultIdentical(b *testing.B) {
+	config := DefaultEndpointConfig()
+	endpoint := NewEndpoint(config)
+	data := make([]byte, 256)
+	if _, err := rand.Read(data); err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if p, err := endpoint.Encode("test", data, 0); err != nil {
+			b.Fatal(err)
+		} else {
+			p.Done()
+		}
+	}
+}
+
+func BenchmarkDefaultFlateIdentical(b *testing.B) {
+	config := DefaultEndpointConfig().SetCompressionAlgorithm(CAFlate)
+	endpoint := NewEndpoint(config)
+	data := make([]byte, 256)
+	if _, err := rand.Read(data); err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if p, err := endpoint.Encode("test", data, 0); err != nil {
+			b.Fatal(err)
+		} else {
+			p.Done()
+		}
 	}
 }
